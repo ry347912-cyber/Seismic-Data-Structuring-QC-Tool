@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Seismic QC Tool — HiDevs GenAI Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #04060d;
+    --surface:  #0b1120;
+    --card:     #111827;
+    --border:   #1e2d45;
+    --accent:   #00d4ff;
+    --gold:     #f0a500;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --amber:    #f59e0b;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Grid texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  section, header, footer { position: relative; z-index: 1; }
+
+  /* ── Hero ── */
+  header {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 6rem 2rem 4rem;
+    text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,.12) 0%, transparent 70%);
+  }
+
+  .badge {
+    display: inline-block;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: .7rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: .3rem .9rem;
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+    animation: fadeDown .6s ease both;
+  }
+
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    animation: fadeDown .7s .1s ease both;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .hero-sub {
+    margin: 1.5rem auto 0;
+    max-width: 620px;
+    color: var(--muted);
+    font-size: .9rem;
+    animation: fadeDown .7s .2s ease both;
+  }
+
+  .cta-row {
+    margin-top: 2.5rem;
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    animation: fadeDown .7s .3s ease both;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .7rem 1.6rem;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    letter-spacing: .05em;
+    text-decoration: none;
+    transition: transform .15s, box-shadow .15s;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: var(--bg); font-weight: 700;
+  }
+  .btn-outline {
+    background: transparent; color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,.25); }
+
+  /* ── Scroll indicator ── */
+  .scroll-hint {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    color: var(--muted); font-size: .7rem; letter-spacing: .1em;
+    display: flex; flex-direction: column; align-items: center; gap: .4rem;
+    animation: bounce 2s infinite;
+  }
+  .scroll-hint::after {
+    content: '↓';
+    font-size: 1.2rem;
+  }
+
+  /* ── Sections ── */
+  .section { padding: 5rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 800;
+    margin-bottom: .5rem;
+  }
+  .section-title span { color: var(--accent); }
+  .section-sub { color: var(--muted); font-size: .85rem; margin-bottom: 3rem; }
+
+  /* ── Pipeline steps ── */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+  }
+  .step-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .step-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+  .step-num {
+    font-size: .7rem; color: var(--accent);
+    letter-spacing: .15em; text-transform: uppercase;
+    margin-bottom: .4rem;
+  }
+  .step-card h3 {
+    font-family: var(--font-head);
+    font-weight: 600; font-size: 1rem;
+    margin-bottom: .5rem;
+  }
+  .step-card p { font-size: .78rem; color: var(--muted); }
+  .step-tools { margin-top: .8rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip {
+    font-size: .65rem; padding: .2rem .6rem;
+    border-radius: 2px; border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .chip.accent { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Live demo ── */
+  .demo-area {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    padding: 1rem;
+    resize: vertical;
+    min-height: 120px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+
+  .run-btn {
+    margin-top: 1rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: .65rem 1.8rem;
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    font-weight: 700;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: opacity .15s, transform .15s;
+  }
+  .run-btn:hover { opacity: .9; transform: translateY(-1px); }
+  .run-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  #output-area { margin-top: 1.5rem; display: none; }
+  .conf-bar-wrap { margin-bottom: 1rem; }
+  .conf-label { font-size: .75rem; color: var(--muted); margin-bottom: .3rem; }
+  .conf-bar-bg {
+    height: 8px; border-radius: 4px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .conf-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .8s ease;
+  }
+
+  .fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: .6rem;
+    margin-top: 1rem;
+  }
+  .field-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: .5rem .8rem;
+    font-size: .75rem;
+  }
+  .field-key { color: var(--muted); font-size: .65rem; letter-spacing: .05em; margin-bottom: .2rem; }
+  .field-val { color: var(--text); }
+  .field-val.missing { color: var(--red); font-style: italic; }
+
+  .flags-row { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+  .flag-chip {
+    font-size: .65rem; padding: .2rem .7rem;
+    border: 1px solid var(--red); color: var(--red);
+    border-radius: 2px;
+  }
+  .rec-item {
+    font-size: .78rem; color: var(--amber);
+    padding: .4rem 0; border-bottom: 1px solid var(--border);
+  }
+  .rec-item:last-child { border-bottom: none; }
+
+  /* ── Schema display ── */
+  .schema-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: auto;
+    padding: 1.5rem;
+    font-size: .78rem;
+    line-height: 1.8;
+  }
+  .schema-key { color: var(--accent); }
+  .schema-type { color: var(--gold); }
+  .schema-note { color: var(--muted); }
+
+  /* ── Stack table ── */
+  .stack-table {
+    width: 100%; border-collapse: collapse; font-size: .8rem;
+  }
+  .stack-table th {
+    text-align: left; padding: .6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted); font-weight: 400;
+    font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+  }
+  .stack-table td { padding: .7rem 1rem; border-bottom: 1px solid var(--border); }
+  .stack-table tr:last-child td { border-bottom: none; }
+  .free { color: var(--green); font-size: .7rem; }
+
+  /* ── Install block ── */
+  .install-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem 2rem;
+    font-size: .82rem;
+  }
+  .install-block code { color: var(--accent); }
+  .install-block .comment { color: var(--muted); }
+  .install-block div { padding: .15rem 0; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: .75rem;
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Animations ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateX(-50%) translateY(0); }
+    50%      { transform: translateX(-50%) translateY(6px); }
+  }
+
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity .6s, transform .6s; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<header>
+  <div class="badge">HiDevs GenAI Internship · Oil & Gas</div>
+  <h1>Seismic Data<br><span>Structuring & QC</span></h1>
+  <p class="hero-sub">
+    Convert free-text seismic feature descriptions into structured JSON.
+    Confidence-scored. Quality-checked. Production-ready.
+  </p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="#demo">▶ Live Demo</a>
+    <a class="btn btn-outline" href="https://github.com/YOUR_USERNAME/seismic-qc" target="_blank">⎇ GitHub</a>
+  </div>
+  <div class="scroll-hint">SCROLL</div>
+</header>
+
+<!-- ── PIPELINE ── -->
+<section class="section reveal" id="pipeline">
+  <p class="section-title">7-Step <span>GenAI Pipeline</span></p>
+  <p class="section-sub">Following the HiDevs RAG architecture end-to-end</p>
+  <div class="pipeline">
+
+    <div class="step-card">
+      <div class="step-num">Step 01</div>
+      <h3>Data Sources</h3>
+      <p>Load seismic reports from plain text, PDF files, and web sources.</p>
+      <div class="step-tools">
+        <span class="chip accent">pdfplumber</span>
+        <span class="chip">LangChain Loaders</span>
+        <span class="chip">Unstructured.io</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">Step 02</div>
+      <h3>Data Preprocessing</h3>
+      <p>Clean raw text, remove noise, normalize units and formatting.</p>
+      <div class="step-tools">
+        <span class="chip">Block splitting</span>
+        <span class="chip">Regex normalization</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">Step 03</div>
+      <h3>Splitting & Chunking</h3>
+      <p>Break documents into overlapping chunks for contextual retrieval.</p>
+      <div class="step-tools">
+        <span class="chip accent">RecursiveCharacterTextSplitter</span>
+        <span class="chip">chunk_size=500</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">Step 04</div>
+      <h3>Embeddings & Vector DB</h3>
+      <p>Encode chunks as vectors; store in ChromaDB for similarity search.</p>
+      <div class="step-tools">
+        <span class="chip accent">all-MiniLM-L6-v2</span>
+        <span class="chip accent">ChromaDB</span>
+        <span class="chip">FAISS fallback</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">Step 05</div>
+      <h3>Query & AI Engine</h3>
+      <p>Retrieve relevant chunks; generate structured answers via Llama3.</p>
+      <div class="step-tools">
+        <span class="chip accent">Groq / Llama3-8b</span>
+        <span class="chip">LangChain RAG</span>
+        <span class="chip">MongoDB memory</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">Step 06</div>
+      <h3>UI & Deployment</h3>
+      <p>Streamlit interface with PDF upload, JSON viewer, and download.</p>
+      <div class="step-tools">
+        <span class="chip accent">Streamlit</span>
+        <span class="chip">GitHub</span>
+        <span class="chip">Streamlit Cloud</span>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <div class="step-num">Step 07</div>
+      <h3>Testing & Optimization</h3>
+      <p>Evaluate extraction accuracy and RAG pipeline quality.</p>
+      <div class="step-tools">
+        <span class="chip">LangChain Eval</span>
+        <span class="chip">DeepEval</span>
+        <span class="chip">TruLens</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── LIVE DEMO ── -->
+<section class="section reveal" id="demo" style="padding-top:0">
+  <p class="section-title">Live <span>Extraction Demo</span></p>
+  <p class="section-sub">Paste a seismic feature description — see it structured instantly</p>
+
+  <div class="demo-area">
+    <textarea id="demo-input" placeholder="e.g. The normal fault F-12 was identified in the Cretaceous Brent Formation at a depth of 2800 m with a strike of 045° and dip of 35° NW. High amplitude bright spot observed..."
+    >The reverse thrust fault RF-07 was identified in the Jurassic Fulmar Formation at a depth of 3500 m. Strike is 090° with a dip of 45° SE. High amplitude bright spot anomaly observed. Reflectors are continuous and sub-parallel. Velocity approximately 3800 m/s.</textarea>
+    <br/>
+    <button class="run-btn" onclick="runExtraction()">⚙ Extract & QC</button>
+
+    <div id="output-area">
+      <div class="conf-bar-wrap" style="margin-top:1.5rem">
+        <div class="conf-label" id="conf-label">Confidence: —</div>
+        <div class="conf-bar-bg">
+          <div class="conf-bar-fill" id="conf-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="fields-grid" id="fields-grid"></div>
+
+      <div id="flags-section" style="margin-top:1.2rem;display:none">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.5rem">QC FLAGS</div>
+        <div class="flags-row" id="flags-row"></div>
+      </div>
+
+      <div id="recs-section" style="margin-top:1.2rem;display:none">
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:.5rem">RECOMMENDATIONS</div>
+        <div id="recs-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SCHEMA ── -->
+<section class="section reveal">
+  <p class="section-title">Output <span>JSON Schema</span></p>
+  <p class="section-sub">Every extracted feature follows this validated structure</p>
+  <div class="schema-wrap">
+<pre><span class="schema-key">{</span>
+  <span class="schema-key">"feature_id"</span>:            <span class="schema-type">string</span>    <span class="schema-note">// e.g. "F-001"</span>
+  <span class="schema-key">"fault_type"</span>:            <span class="schema-type">string|null</span>  <span class="schema-note">// normal, reverse, thrust, strike-slip…</span>
+  <span class="schema-key">"structure_type"</span>:        <span class="schema-type">string|null</span>  <span class="schema-note">// anticline, graben, dome…</span>
+  <span class="schema-key">"depth_m"</span>:               <span class="schema-type">float|null</span>   <span class="schema-note">// normalised to metres</span>
+  <span class="schema-key">"depth_unit"</span>:            <span class="schema-type">string|null</span>  <span class="schema-note">// m / ft / km</span>
+  <span class="schema-key">"depth_raw"</span>:             <span class="schema-type">string|null</span>  <span class="schema-note">// original text excerpt</span>
+  <span class="schema-key">"strike"</span>:                <span class="schema-type">float|null</span>   <span class="schema-note">// degrees (0–360)</span>
+  <span class="schema-key">"dip"</span>:                   <span class="schema-type">float|null</span>   <span class="schema-note">// degrees (0–90)</span>
+  <span class="schema-key">"dip_direction"</span>:         <span class="schema-type">string|null</span>  <span class="schema-note">// N / NE / SE…</span>
+  <span class="schema-key">"amplitude"</span>:             <span class="schema-type">string|null</span>  <span class="schema-note">// high / low / bright spot…</span>
+  <span class="schema-key">"frequency"</span>:             <span class="schema-type">string|null</span>  <span class="schema-note">// Hz value or descriptor</span>
+  <span class="schema-key">"reflector_continuity"</span>:  <span class="schema-type">string|null</span>  <span class="schema-note">// continuous, chaotic, parallel…</span>
+  <span class="schema-key">"velocity_ms"</span>:           <span class="schema-type">float|null</span>   <span class="schema-note">// m/s</span>
+  <span class="schema-key">"age"</span>:                   <span class="schema-type">string|null</span>  <span class="schema-note">// Cretaceous, Jurassic…</span>
+  <span class="schema-key">"formation"</span>:             <span class="schema-type">string|null</span>  <span class="schema-note">// named stratigraphic unit</span>
+  <span class="schema-key">"confidence_score"</span>:      <span class="schema-type">float</span>        <span class="schema-note">// 0.0 – 1.0</span>
+  <span class="schema-key">"missing_fields"</span>:        <span class="schema-type">string[]</span>     <span class="schema-note">// required fields absent</span>
+  <span class="schema-key">"qc_flags"</span>:              <span class="schema-type">string[]</span>     <span class="schema-note">// MISSING_DEPTH, LOW_CONFIDENCE…</span>
+  <span class="schema-key">"qc_recommendations"</span>:   <span class="schema-type">string[]</span>     <span class="schema-note">// actionable QC advice</span>
+<span class="schema-key">}</span></pre>
+  </div>
+</section>
+
+<!-- ── TECH STACK ── -->
+<section class="section reveal">
+  <p class="section-title">Tech <span>Stack</span></p>
+  <p class="section-sub">100 % free and open-source — perfect for learning</p>
+  <table class="stack-table">
+    <thead>
+      <tr><th>Component</th><th>Tool</th><th>Role</th><th>Cost</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>PDF Parsing</td><td>pdfplumber</td><td>Extract text from PDF reports</td><td class="free">Free</td></tr>
+      <tr><td>Chunking</td><td>LangChain RecursiveCharacterTextSplitter</td><td>Split docs into semantic chunks</td><td class="free">Free</td></tr>
+      <tr><td>Embeddings</td><td>sentence-transformers/all-MiniLM-L6-v2</td><td>Semantic vector encoding</td><td class="free">Free (HuggingFace)</td></tr>
+      <tr><td>Vector DB</td><td>ChromaDB / FAISS</td><td>Fast similarity search</td><td class="free">Free / Open-source</td></tr>
+      <tr><td>LLM</td><td>Llama3-8b via Groq</td><td>Answer generation</td><td class="free">Free (dev tier)</td></tr>
+      <tr><td>Memory</td><td>MongoDB</td><td>Conversation history</td><td class="free">Free (Atlas)</td></tr>
+      <tr><td>UI</td><td>Streamlit</td><td>Interactive web interface</td><td class="free">Free</td></tr>
+      <tr><td>Deployment</td><td>Streamlit Cloud + GitHub</td><td>CI/CD & hosting</td><td class="free">Free</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ── INSTALL ── -->
+<section class="section reveal" id="install">
+  <p class="section-title">Quick <span>Start</span></p>
+  <p class="section-sub">Get running in under 2 minutes</p>
+  <div class="install-block">
+    <div><span style="color:var(--muted)"># 1. Clone</span></div>
+    <div><code>git clone https://github.com/YOUR_USERNAME/seismic-qc.git && cd seismic-qc</code></div>
+    <br/>
+    <div><span style="color:var(--muted)"># 2. Install dependencies</span></div>
+    <div><code>pip install -r requirements.txt</code></div>
+    <br/>
+    <div><span style="color:var(--muted)"># 3. Add your Groq API key (free at console.groq.com)</span></div>
+    <div><code>cp .env.example .env && nano .env</code></div>
+    <br/>
+    <div><span style="color:var(--muted)"># 4a. Run CLI demo (no API key needed)</span></div>
+    <div><code>python main.py --demo</code></div>
+    <br/>
+    <div><span style="color:var(--muted)"># 4b. Launch Streamlit UI</span></div>
+    <div><code>streamlit run app.py</code></div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>Built for the <strong>HiDevs 100-Day GenAI Internship</strong> · Oil & Gas Track</p>
+  <p style="margin-top:.5rem">
+    <a href="https://github.com/YOUR_USERNAME/seismic-qc">GitHub</a> ·
+    <a href="https://hidevs.community" target="_blank">HiDevs Community</a>
+  </p>
+</footer>
+
+<script>
+// ── Scroll reveal ────────────────────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Mini extraction engine (JS port of extractor.py) ────────────────────
+function extractFeature(text) {
+  const lower = text.toLowerCase();
+
+  const faultTypes = ["normal","reverse","thrust","strike-slip","oblique","listric","growth","blind","tear","detachment"];
+  const structureTypes = ["anticline","syncline","dome","basin","graben","horst","half-graben","diapir","salt","fold","reef"];
+  const amplitudeKws = ["high amplitude","low amplitude","moderate amplitude","bright spot","dim spot","flat spot","strong reflector","weak reflector"];
+  const contKws = ["continuous","discontinuous","disrupted","chaotic","parallel","sub-parallel","divergent","convergent"];
+  const ages = ["cretaceous","jurassic","triassic","permian","miocene","oligocene","eocene","paleocene","pleistocene","mesozoic","cenozoic","paleozoic"];
+
+  const feat = {
+    fault_type: null, structure_type: null,
+    depth_m: null, depth_unit: null, depth_raw: null,
+    strike: null, dip: null, dip_direction: null,
+    amplitude: null, frequency: null, reflector_continuity: null,
+    velocity_ms: null, age: null, formation: null,
+    confidence_score: 0,
+    missing_fields: [], qc_flags: [], qc_recommendations: [],
+  };
+
+  for (const ft of faultTypes) {
+    if (lower.includes(ft)) { feat.fault_type = ft; break; }
+  }
+  if (!feat.fault_type && lower.includes("fault")) feat.fault_type = "unclassified";
+
+  for (const st of structureTypes) {
+    if (lower.includes(st)) { feat.structure_type = st; break; }
+  }
+
+  const depthPat = /depth[^\d]{0,20}([\d,\.]+)\s*(m\b|km\b|ft\b|metres?|meters?|feet)/i;
+  let m = text.match(depthPat);
+  if (!m) m = text.match(/([\d,\.]+)\s*(m\b|km\b|ft\b)\s*(depth|deep|bsl|tvd)/i);
+  if (!m) m = text.match(/~?([\d,\.]+)\s*(m|ft|km)\b/i);
+  if (m) {
+    const val = parseFloat(m[1].replace(/,/g,''));
+    const unit = m[2].toLowerCase();
+    feat.depth_raw = m[0];
+    feat.depth_unit = unit;
+    if (unit.startsWith('km')) feat.depth_m = Math.round(val * 1000);
+    else if (unit.startsWith('ft') || unit.startsWith('fe')) feat.depth_m = Math.round(val * 0.3048 * 10)/10;
+    else feat.depth_m = val;
+  }
+
+  m = text.match(/strik(?:e|ing)[^\d]{0,15}(\d{1,3})\s*[°]?/i);
+  if (m) feat.strike = parseFloat(m[1]);
+  m = text.match(/dip(?:ping)?[^\d]{0,15}(\d{1,2})\s*[°]?/i);
+  if (m) feat.dip = parseFloat(m[1]);
+  m = text.match(/dip(?:ping)?\s+\d+[°]?\s+(N|S|E|W|NE|NW|SE|SW)/i);
+  if (m) feat.dip_direction = m[1].toUpperCase();
+
+  for (const kw of amplitudeKws) {
+    if (lower.includes(kw)) { feat.amplitude = kw; break; }
+  }
+  if (!feat.amplitude) {
+    m = lower.match(/(high|low|moderate|strong|weak|bright|dim)\s+amplitude/);
+    if (m) feat.amplitude = m[0];
+  }
+
+  for (const kw of contKws) {
+    if (lower.includes(kw)) { feat.reflector_continuity = kw; break; }
+  }
+
+  m = text.match(/velocity[^\d]{0,10}([\d,\.]+)\s*m\/s/i);
+  if (m) feat.velocity_ms = parseFloat(m[1].replace(/,/g,''));
+
+  for (const age of ages) {
+    if (lower.includes(age)) { feat.age = age.charAt(0).toUpperCase() + age.slice(1); break; }
+  }
+
+  m = text.match(/([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\s+(Formation|Member|Group|Horizon|Sand|Shale)\b/);
+  if (m) feat.formation = m[0];
+
+  // Confidence
+  const weights = {fault_type:.2,depth_m:.2,strike:.1,dip:.1,formation:.15,amplitude:.1,age:.08,reflector_continuity:.07};
+  let score = 0;
+  for (const [k,w] of Object.entries(weights)) if (feat[k] !== null) score += w;
+  feat.confidence_score = Math.round(Math.min(score,1)*1000)/1000;
+
+  const required = ["fault_type","depth_m","strike","dip","formation"];
+  feat.missing_fields = required.filter(f => feat[f] === null);
+
+  // QC
+  if (feat.depth_m === null) { feat.qc_flags.push("MISSING_DEPTH"); feat.qc_recommendations.push("Provide depth measurement (TWT or TVD) in metres or feet."); }
+  if (feat.fault_type === null) { feat.qc_flags.push("MISSING_FAULT_TYPE"); feat.qc_recommendations.push("Classify fault type (normal, reverse, strike-slip, thrust, etc.)."); }
+  if (feat.dip === null) { feat.qc_flags.push("MISSING_DIP"); feat.qc_recommendations.push("Add dip angle and direction for structural analysis."); }
+  if (feat.strike === null) { feat.qc_flags.push("MISSING_STRIKE"); feat.qc_recommendations.push("Add strike azimuth for fault/structure orientation."); }
+  if (feat.formation === null) { feat.qc_flags.push("MISSING_FORMATION"); feat.qc_recommendations.push("Link feature to a named stratigraphic formation or horizon."); }
+  if (feat.amplitude === null) { feat.qc_flags.push("MISSING_AMPLITUDE"); feat.qc_recommendations.push("Include amplitude description for DHI analysis."); }
+  if (feat.depth_m !== null && feat.depth_m > 8000) { feat.qc_flags.push("DEPTH_EXCEEDS_TYPICAL"); feat.qc_recommendations.push("Depth > 8 000 m — verify units and conversion."); }
+  if (feat.confidence_score < 0.3) { feat.qc_flags.push("LOW_CONFIDENCE"); feat.qc_recommendations.push("Description is sparse — enrich with additional attributes."); }
+  else if (feat.confidence_score < 0.6) { feat.qc_flags.push("MODERATE_CONFIDENCE"); feat.qc_recommendations.push("Consider supplementing with cross-sections or well-log ties."); }
+
+  return feat;
+}
+
+function runExtraction() {
+  const text = document.getElementById('demo-input').value.trim();
+  if (!text) return;
+
+  const btn = document.querySelector('.run-btn');
+  btn.disabled = true; btn.textContent = '⏳ Processing…';
+
+  setTimeout(() => {
+    const feat = extractFeature(text);
+
+    // Confidence bar
+    const pct = Math.round(feat.confidence_score * 100);
+    const color = pct >= 70 ? 'var(--green)' : pct >= 40 ? 'var(--amber)' : 'var(--red)';
+    document.getElementById('conf-label').textContent = `Confidence: ${pct}%`;
+    const bar = document.getElementById('conf-bar');
+    bar.style.background = color;
+    setTimeout(() => bar.style.width = pct + '%', 50);
+
+    // Fields grid
+    const fieldDefs = [
+      ['Fault Type', feat.fault_type],
+      ['Structure Type', feat.structure_type],
+      ['Depth (m)', feat.depth_m],
+      ['Depth (raw)', feat.depth_raw],
+      ['Strike (°)', feat.strike],
+      ['Dip (°)', feat.dip],
+      ['Dip Direction', feat.dip_direction],
+      ['Amplitude', feat.amplitude],
+      ['Reflector', feat.reflector_continuity],
+      ['Velocity (m/s)', feat.velocity_ms],
+      ['Age', feat.age],
+      ['Formation', feat.formation],
+    ];
+    const grid = document.getElementById('fields-grid');
+    grid.innerHTML = fieldDefs.map(([k,v]) => `
+      <div class="field-item">
+        <div class="field-key">${k}</div>
+        <div class="field-val ${v === null ? 'missing' : ''}">${v !== null ? v : '⚠ missing'}</div>
+      </div>`).join('');
+
+    // Flags
+    const flagsSection = document.getElementById('flags-section');
+    if (feat.qc_flags.length) {
+      document.getElementById('flags-row').innerHTML = feat.qc_flags.map(f => `<span class="flag-chip">${f}</span>`).join('');
+      flagsSection.style.display = 'block';
+    } else {
+      flagsSection.style.display = 'none';
+    }
+
+    // Recommendations
+    const recsSection = document.getElementById('recs-section');
+    if (feat.qc_recommendations.length) {
+      document.getElementById('recs-list').innerHTML = feat.qc_recommendations.map(r => `<div class="rec-item">→ ${r}</div>`).join('');
+      recsSection.style.display = 'block';
+    } else {
+      recsSection.style.display = 'none';
+    }
+
+    document.getElementById('output-area').style.display = 'block';
+    btn.disabled = false; btn.textContent = '⚙ Extract & QC';
+  }, 300);
+}
+
+// Auto-run demo on load
+window.addEventListener('load', () => setTimeout(runExtraction, 800));
+</script>
+</body>
+</html>
