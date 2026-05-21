@@ -1,0 +1,97 @@
+[
+  {
+    "feature_id": "F-001",
+    "feature_name": "RF-07",
+    "fault_type": "reverse",
+    "structure_type": null,
+    "depth_m": 3500.0,
+    "depth_unit": "m",
+    "depth_raw": "depth of 3500 m",
+    "strike": 90.0,
+    "dip": 45.0,
+    "dip_direction": null,
+    "amplitude": "high amplitude",
+    "frequency": null,
+    "reflector_continuity": "continuous",
+    "velocity_ms": null,
+    "age": "Jurassic",
+    "formation": "Jurassic Fulmar Formation",
+    "horizon": "Jurassic Fulmar Formation",
+    "confidence_score": 1.0,
+    "missing_fields": [],
+    "qc_flags": [],
+    "qc_recommendations": [],
+    "source_text": "The reverse fault RF-07 was identified in the Jurassic Fulmar Formation at a depth of 3500 m. Strike is 090\u00b0 with a dip of 45\u00b0 SE. High amplitude bright spot anomaly observed. Reflectors are continuous and sub-parallel. Velocity approximately 3800 m/s."
+  },
+  {
+    "feature_id": "F-002",
+    "feature_name": "trending",
+    "fault_type": "normal",
+    "structure_type": null,
+    "depth_m": 548.6,
+    "depth_unit": "ft",
+    "depth_raw": "1800 ft",
+    "strike": null,
+    "dip": null,
+    "dip_direction": null,
+    "amplitude": null,
+    "frequency": null,
+    "reflector_continuity": "discontinuous",
+    "velocity_ms": null,
+    "age": null,
+    "formation": "No formation",
+    "horizon": "No formation",
+    "confidence_score": 0.62,
+    "missing_fields": [
+      "strike",
+      "dip"
+    ],
+    "qc_flags": [
+      "MISSING_DIP",
+      "MISSING_STRIKE",
+      "MISSING_AMPLITUDE"
+    ],
+    "qc_recommendations": [
+      "Add dip angle and direction for structural analysis.",
+      "Add strike azimuth for fault/structure orientation.",
+      "Include amplitude description for DHI (Direct Hydrocarbon Indicator) analysis."
+    ],
+    "source_text": "A normal fault trending NE-SW was mapped at approximately 1800 ft depth. No formation data available. Dip estimated around 60\u00b0. Amplitude character is low and discontinuous."
+  },
+  {
+    "feature_id": "F-003",
+    "feature_name": "zone",
+    "fault_type": "strike-slip",
+    "structure_type": null,
+    "depth_m": 4200.0,
+    "depth_unit": "km",
+    "depth_raw": "4.2 km depth",
+    "strike": null,
+    "dip": null,
+    "dip_direction": null,
+    "amplitude": "moderate amplitude",
+    "frequency": null,
+    "reflector_continuity": "chaotic",
+    "velocity_ms": null,
+    "age": "Cretaceous",
+    "formation": null,
+    "horizon": null,
+    "confidence_score": 0.65,
+    "missing_fields": [
+      "strike",
+      "dip",
+      "formation"
+    ],
+    "qc_flags": [
+      "MISSING_DIP",
+      "MISSING_STRIKE",
+      "MISSING_FORMATION"
+    ],
+    "qc_recommendations": [
+      "Add dip angle and direction for structural analysis.",
+      "Add strike azimuth for fault/structure orientation.",
+      "Link feature to a named stratigraphic formation or horizon."
+    ],
+    "source_text": "Strike-slip fault zone observed in the Cretaceous section. Chaotic reflector pattern with moderate amplitude. Feature extends from surface to 4.2 km depth."
+  }
+]
